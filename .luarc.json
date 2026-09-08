@@ -1,0 +1,7 @@
+{
+    "diagnostics.globals": [
+        "PocketsDB",
+        "Settings",
+        "CreateFrame",
+    ]
+}

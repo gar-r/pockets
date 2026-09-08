@@ -4,5 +4,11 @@
 ## Notes: Pick Pocket Stats
 ## Author: garric
 ## SavedVariables: PocketsDB
+## AddonCompartmentFunc: Pockets_OnAddonCompartmentClick
 
+ui/settings.lua
+ui/minimap.lua
+core/session.lua
+core/config.lua
+sm.lua
 main.lua
