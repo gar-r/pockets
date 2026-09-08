@@ -1,0 +1,8 @@
+## Interface: 120100
+## Version: 1.0.0
+## Title: Pockets
+## Notes: Pick Pocket Stats
+## Author: garric
+## SavedVariables: PocketsDB
+
+main.lua
