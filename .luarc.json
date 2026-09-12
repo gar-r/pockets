@@ -3,5 +3,6 @@
         "PocketsDB",
         "Settings",
         "CreateFrame",
+        "InCombatLockdown"
     ]
 }

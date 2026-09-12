@@ -6,12 +6,15 @@ install: uninstall
 	mkdir -p "$(ADDON_DIR)/$(ADDON_NAME)"
 	cp -rf . "$(ADDON_DIR)/$(ADDON_NAME)"
 
+test:
+	lua5.1 tests/test_sm.lua
+
 uninstall:
 	rm -rf "$(ADDON_DIR)/$(ADDON_NAME)"
 
 release: clean
 	mkdir -p dist/$(ADDON_NAME)
-	rsync -av --exclude=".*" --exclude="assets/" --exclude="dist" . dist/$(ADDON_NAME)
+	rsync -av --exclude=".*" --exclude="assets/" --exclude="tests/" --exclude="dist" . dist/$(ADDON_NAME)
 	cd dist && zip -r $(ADDON_NAME)_v$(ADDON_VERSION).zip $(ADDON_NAME)/*
 
 clean:
