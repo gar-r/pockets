@@ -6,6 +6,7 @@
         "InCombatLockdown",
         "GetMoney",
         "GetMoneyString",
-        "CreateSettingsListSectionHeaderInitializer"
+        "CreateSettingsListSectionHeaderInitializer",
+        "EventRegistry"
     ]
 }

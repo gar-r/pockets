@@ -8,6 +8,7 @@ install: uninstall
 
 test:
 	lua5.1 tests/test_sm.lua
+	lua5.1 tests/test_config.lua
 	lua5.1 tests/test_tracker.lua
 
 uninstall:

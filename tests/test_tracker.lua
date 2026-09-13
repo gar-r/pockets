@@ -11,6 +11,7 @@
 
 local here = arg and arg[0]:match("^(.*)[/\\]") or "."
 local smPath = here .. "/../core/sm.lua"
+local configPath = here .. "/../core/config.lua"
 local trackerPath = here .. "/../core/tracker.lua"
 
 local function makeFrame()
@@ -56,13 +57,17 @@ _G.InCombatLockdown = function()
   return false
 end
 
-local config = { db = { totalGold = 0 } }
-local pockets = { openers = openers, config = config }
+local pockets = { openers = openers }
 
 local chunk = assert(loadfile(smPath))
 chunk(nil, pockets)
 local sm = pockets.sm
 sm:Init()
+
+chunk = assert(loadfile(configPath))
+chunk(nil, pockets)
+local config = pockets.config
+config:Init()
 
 chunk = assert(loadfile(trackerPath))
 chunk(nil, pockets)
@@ -84,11 +89,11 @@ end
 do
   money = 100
   frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
-  ok(config.db.totalGold == 0, "no gold counted while the loot window is open")
+  ok(config:GetTotalGold() == 0, "no gold counted while the loot window is open")
 
   money = 355
   frame:emit("LOOT_CLOSED")
-  ok(config.db.totalGold == 255, "gold looted during the window is added")
+  ok(config:GetTotalGold() == 255, "gold looted during the window is added")
 
   ok(sm.state == sm.STATE.OPENER, "loot window closed into the opener state")
 end
@@ -99,7 +104,7 @@ do
   money = 100
   frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   frame:emit("LOOT_CLOSED")
-  ok(config.db.totalGold == 255, "a window with no money adds nothing")
+  ok(config:GetTotalGold() == 255, "a window with no money adds nothing")
 end
 
 -- a negative delta is never subtracted (clamped at zero)
@@ -109,7 +114,7 @@ do
   frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 50
   frame:emit("LOOT_CLOSED")
-  ok(config.db.totalGold == 255, "a negative delta is ignored")
+  ok(config:GetTotalGold() == 255, "a negative delta is ignored")
 end
 
 -- aborting the loot window (target changed mid-loot) finalizes looted gold
@@ -119,7 +124,7 @@ do
   frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 220
   frame:emit("PLAYER_TARGET_CHANGED")
-  ok(config.db.totalGold == 275, "changing targets finalizes gold already looted")
+  ok(config:GetTotalGold() == 275, "changing targets finalizes gold already looted")
 end
 
 -- repeated pickpockets accumulate
@@ -136,7 +141,26 @@ do
   money = 70
   frame:emit("LOOT_CLOSED")
 
-  ok(config.db.totalGold == 345, "repeated pickpockets accumulate")
+  ok(config:GetTotalGold() == 345, "repeated pickpockets accumulate")
+end
+
+-- tracking can be disabled globally: no gold counted while off
+do
+  config:SetTrackingEnabled(false)
+  reset()
+  money = 0
+  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  money = 50
+  frame:emit("LOOT_CLOSED")
+  ok(config:GetTotalGold() == 345, "no gold is counted while tracking is disabled")
+
+  config:SetTrackingEnabled(true)
+  reset()
+  money = 50
+  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  money = 90
+  frame:emit("LOOT_CLOSED")
+  ok(config:GetTotalGold() == 385, "tracking resumes after re-enabling")
 end
 
 print("All tracker tests passed")
