@@ -20,8 +20,8 @@ local STATE_OPENER = 3
 --]]
 local transitions = {
   UNIT_SPELLCAST_SUCCEEDED    = { STATE_LOOTING, STATE_OPENER, nil },
-  UNIT_SPELLCAST_FAILED       = { STATE_OPENER, STATE_OPENER, nil },
-  UNIT_SPELLCAST_FAILED_QUIET = { STATE_OPENER, STATE_OPENER, nil },
+  UNIT_SPELLCAST_FAILED       = { STATE_OPENER, nil, nil },
+  UNIT_SPELLCAST_FAILED_QUIET = { STATE_OPENER, nil, nil },
   PLAYER_REGEN_ENABLED        = { nil, nil, STATE_PICK_POCKET },
   PLAYER_REGEN_DISABLED       = { STATE_OPENER, STATE_OPENER, nil },
   PLAYER_TARGET_CHANGED       = { nil, STATE_PICK_POCKET, STATE_PICK_POCKET },
@@ -73,7 +73,7 @@ end
 
 function sm:updateOpeners()
   for _, op in pairs(openers) do
-    op:SetSpell(self.state == STATE_PICK_POCKET)
+    op:SetSpell(self.state ~= STATE_OPENER)
   end
 end
 
