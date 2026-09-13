@@ -3,6 +3,9 @@
         "PocketsDB",
         "Settings",
         "CreateFrame",
-        "InCombatLockdown"
+        "InCombatLockdown",
+        "GetMoney",
+        "GetMoneyString",
+        "CreateSettingsListSectionHeaderInitializer"
     ]
 }

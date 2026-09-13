@@ -2,6 +2,8 @@ local _, pockets = ...
 
 local PICK_POCKET = 921
 
+local sm = pockets.sm
+
 local opener = {}
 
 local function createSecureButton(spell, spellId)
@@ -26,6 +28,16 @@ function opener:new(spell, spellId)
   setmetatable(o, self)
   self.__index = self
   return o
+end
+
+function opener:Init()
+  -- subscribe to sm state transitions
+  sm:RegisterStateListener(function (_, newState)
+    -- set spell based on which state we are in
+    self:SetSpell(newState ~= sm.STATE.OPENER)
+  end)
+  -- sync to the current sm state (the initial transition already fired)
+  self:SetSpell(sm.state ~= sm.STATE.OPENER)
 end
 
 function opener:SetSpell(isPickPocket)
@@ -63,11 +75,21 @@ function opener:deferSync()
   end)
 end
 
-pockets.opener = opener
-pockets.openers = {
+
+local openers = {
   AMBUSH = opener:new("Ambush", 8676),
   CHEAP_SHOT = opener:new("Cheap_Shot", 1833),
   GARROTE = opener:new("Garrote", 703),
   SHADOWSTRIKE = opener:new("Shadowstrike", 185438),
   SAP = opener:new("Sap", 6770),
 }
+
+function openers:Init()
+  for _, op in pairs(openers) do
+    if type(op) == "table" then
+      op:Init()
+    end
+  end
+end
+
+pockets.openers = openers

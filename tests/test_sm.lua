@@ -4,7 +4,7 @@
 -- STATE_PICK_POCKET = 1, STATE_LOOTING = 2, STATE_OPENER = 3
 
 local here = arg and arg[0]:match("^(.*)[/\\]") or "."
-local smPath = here .. "/../sm.lua"
+local smPath = here .. "/../core/sm.lua"
 
 local function makeFrame()
   local frame = {
@@ -46,6 +46,13 @@ local pockets = { openers = openers }
 local chunk = assert(loadfile(smPath))
 chunk(nil, pockets)
 local sm = pockets.sm
+
+-- wire the openers to the state machine like core/opener.lua opener:Init()
+for _, op in ipairs(openers) do
+  sm:RegisterStateListener(function(_, newState)
+    op:SetSpell(newState ~= sm.STATE.OPENER)
+  end)
+end
 
 local function lastSpell(op)
   return op.calls[#op.calls]
@@ -112,6 +119,34 @@ do
   frame:emit("UNIT_SPELLCAST_FAILED_QUIET", "player", "GUID", 921)
   is(3)
   ok(lastSpell(openers[1]) == false, "opener is armed after a quiet failed pick pocket")
+end
+
+-- a registered observer is notified with (oldState, newState) on every transition
+do
+  sm:Init()
+  local seen = {}
+  sm:RegisterStateListener(function(oldState, newState)
+    table.insert(seen, { old = oldState, new = newState })
+  end)
+
+  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  frame:emit("LOOT_CLOSED")
+
+  ok(#seen == 2, "observer was notified once per transition")
+  ok(seen[1].old == 1 and seen[1].new == 2, "observer received 1 -> 2")
+  ok(seen[2].old == 2 and seen[2].new == 3, "observer received 2 -> 3")
+end
+
+-- the public STATE table mirrors the real internal states
+do
+  sm:Init()
+  ok(sm.state == sm.STATE.PICK_POCKET, "STATE.PICK_POCKET matches the initial state")
+
+  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  ok(sm.state == sm.STATE.LOOTING, "STATE.LOOTING matches the looting state")
+
+  frame:emit("LOOT_CLOSED")
+  ok(sm.state == sm.STATE.OPENER, "STATE.OPENER matches the opener state")
 end
 
 print("All state machine tests passed")

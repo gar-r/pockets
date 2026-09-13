@@ -6,9 +6,11 @@
 ## SavedVariables: PocketsDB
 ## AddonCompartmentFunc: Pockets_OnAddonCompartmentClick
 
+strings.lua
+core/config.lua
+core/sm.lua
+core/tracker.lua
+core/opener.lua
 ui/settings.lua
 ui/minimap.lua
-core/config.lua
-opener.lua
-sm.lua
 main.lua

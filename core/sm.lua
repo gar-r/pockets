@@ -1,7 +1,5 @@
 local _, pockets = ...
 
-local openers = pockets.openers
-
 local PICK_POCKET = 921
 
 -- States in the SM
@@ -31,6 +29,13 @@ local transitions = {
 local sm = {
   frame = CreateFrame("Frame"),
   state = nil,
+  observers = {},
+}
+
+sm.STATE = {
+  PICK_POCKET = STATE_PICK_POCKET,
+  LOOTING = STATE_LOOTING,
+  OPENER = STATE_OPENER,
 }
 
 function sm:Init()
@@ -43,6 +48,10 @@ function sm:Init()
   self.frame:SetScript("OnEvent", function(_, event, ...)
     self:handleEvent(event, ...)
   end)
+end
+
+function sm:RegisterStateListener(fn)
+  table.insert(self.observers, fn)
 end
 
 function sm:handleEvent(event, ...)
@@ -67,21 +76,21 @@ function sm:isValidEvent(event)
 end
 
 function sm:transition(newState)
+  local oldState = self.state
   self.state = newState
-  self:updateOpeners()
-end
-
-function sm:updateOpeners()
-  for _, op in pairs(openers) do
-    op:SetSpell(self.state ~= STATE_OPENER)
+  -- notify observers of the state change
+  for _, fn in ipairs(self.observers) do
+    fn(oldState, newState)
   end
 end
 
 function sm:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellId)
   -- only allow next state transition when the player casts pick pocket
-  if unit == "player" and spellId == PICK_POCKET then
-    return true
-  end
+  return unit == "player" and spellId == PICK_POCKET
+end
+
+function sm:PLAYER_TARGET_CHANGED()
+  return not InCombatLockdown()
 end
 
 pockets.sm = sm

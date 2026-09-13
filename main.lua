@@ -2,7 +2,9 @@ local name, pockets = ...
 
 local config = pockets.config     -- config variables
 local settings = pockets.settings -- settings ui
-local sm = pockets.sm             -- statem machine
+local sm = pockets.sm             -- state machine
+local openers = pockets.openers   -- opener secure buttons
+local tracker = pockets.tracker   -- gold tracker
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
@@ -17,5 +19,7 @@ function frame:ADDON_LOADED(addonName)
         config:Init()
         settings:Init()
         sm:Init()
+        openers:Init()
+        tracker:Init()
     end
 end
