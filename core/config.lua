@@ -16,6 +16,7 @@ function config:Init()
 		end
 	end
 	self.db = db
+	self.totalGoldListeners = self.totalGoldListeners or {}
 end
 
 function config:GetTotalGold()
@@ -25,6 +26,17 @@ end
 function config:AddTotalGold(amount)
 	if self:IsTrackingEnabled() and amount > 0 then
 		self.db.totalGold = self.db.totalGold + amount
+		self:notifyTotalGoldChanged()
+	end
+end
+
+function config:RegisterTotalGoldListener(fn)
+	table.insert(self.totalGoldListeners, fn)
+end
+
+function config:notifyTotalGoldChanged()
+	for _, fn in ipairs(self.totalGoldListeners) do
+		fn(self:GetTotalGold())
 	end
 end
 

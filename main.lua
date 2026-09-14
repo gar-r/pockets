@@ -5,6 +5,7 @@ local settings = pockets.settings -- settings ui
 local sm = pockets.sm             -- state machine
 local openers = pockets.openers   -- opener secure buttons
 local tracker = pockets.tracker   -- gold tracker
+local gold = pockets.gold         -- gold display frame
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
@@ -21,5 +22,6 @@ function frame:ADDON_LOADED(addonName)
         sm:Init()
         openers:Init()
         tracker:Init()
+        gold:Init()
     end
 end

@@ -6,6 +6,8 @@
         "InCombatLockdown",
         "GetMoney",
         "GetMoneyString",
+        "UIParent",
+        "GameFontNormalSmall",
         "CreateSettingsListSectionHeaderInitializer",
         "EventRegistry",
         "C_Timer"
