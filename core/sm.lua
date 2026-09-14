@@ -90,6 +90,7 @@ function sm:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellId)
 end
 
 function sm:PLAYER_TARGET_CHANGED()
+  -- only allow when not in combat
   return not InCombatLockdown()
 end
 

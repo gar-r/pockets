@@ -3,25 +3,39 @@ local _, pockets = ...
 local config = pockets.config
 local sm = pockets.sm
 
-local tracker = {}
+local tracker = {
+  frame = CreateFrame("Frame"),
+}
 
 function tracker:Init()
+  self.frame:RegisterEvent("PLAYER_MONEY")
+  self.frame:SetScript("OnEvent", function (_, event)
+    if event == "PLAYER_MONEY" then
+      self:onPlayerMoney()
+    end
+  end)
   sm:RegisterStateListener(function(oldState, newState)
     self:onStateChanged(oldState, newState)
   end)
 end
 
-function tracker:onStateChanged(oldState, newState)
-  if newState == sm.STATE.LOOTING then
-    -- snapshot player money when the pickpocket loot window opens
-    self.baseMoney = GetMoney()
+function tracker:onStateChanged(_, newState)
+  if not config:IsTrackingEnabled() then
     return
   end
-  if oldState == sm.STATE.LOOTING then
-    -- the loot window closed without a transition to the next loot window:
-    -- whatever positive delta happened in between is pickpocket gold
-    config:AddTotalGold(GetMoney() - self.baseMoney)
-    self.baseMoney = nil
+  if newState == sm.STATE.LOOTING then
+    self.snapshot = GetMoney()
+    C_Timer.After(1, function ()
+      self.snapshot = nil
+    end)
+  end
+end
+
+function tracker:onPlayerMoney()
+  if self.snapshot then
+    local delta = GetMoney() - self.snapshot
+    self.snapshot = nil
+    config:AddTotalGold(delta)
   end
 end
 

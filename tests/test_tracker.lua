@@ -1,8 +1,11 @@
 -- tests/test_tracker.lua
 -- Regression tests for the pockets pickpocket gold tracker.
 --
--- The tracker watches the state machine: gold looted is the delta of
--- GetMoney() across the LOOTING window (STATE_LOOTING = 2).
+-- The tracker watches the state machine: when the SM enters LOOTING it
+-- snapshots GetMoney(), and the first PLAYER_MONEY inside the loot window
+-- banks the delta (GetMoney() - snapshot). The snapshot also expires a
+-- second after the window opens (C_Timer.After), so a PLAYER_MONEY that
+-- arrives after the window is never counted.
 --
 -- The scenarios below form one continuous pickpocket session so the
 -- state machine transitions stay realistic: a pickpocket only opens a
@@ -33,9 +36,9 @@ local function makeFrame()
   return frame
 end
 
-local frame = makeFrame()
+-- each module registers on its own frame, like in the game
 _G.CreateFrame = function()
-  return frame
+  return makeFrame()
 end
 
 local function makeOpener(name)
@@ -57,12 +60,26 @@ _G.InCombatLockdown = function()
   return false
 end
 
+-- C_Timer.After schedules the snapshot expiry; tests fire the callbacks
+local timerCallbacks = {}
+_G.C_Timer = {
+  After = function(delay, fn)
+    table.insert(timerCallbacks, fn)
+  end,
+}
+
+local function expireSnapshot()
+  local cb = table.remove(timerCallbacks)
+  cb()
+end
+
 local pockets = { openers = openers }
 
 local chunk = assert(loadfile(smPath))
 chunk(nil, pockets)
 local sm = pockets.sm
 sm:Init()
+local smFrame = sm.frame
 
 chunk = assert(loadfile(configPath))
 chunk(nil, pockets)
@@ -73,6 +90,7 @@ chunk = assert(loadfile(trackerPath))
 chunk(nil, pockets)
 local tracker = pockets.tracker
 tracker:Init()
+local trackerFrame = tracker.frame
 
 local function ok(cond, msg)
   if not cond then
@@ -82,64 +100,76 @@ end
 
 -- re-arm the pick pocket state after a loot window closed (target changed)
 local function reset()
-  frame:emit("PLAYER_TARGET_CHANGED")
+  smFrame:emit("PLAYER_TARGET_CHANGED")
 end
 
--- gold gained during the loot window is added once the window closes
+-- gold gained during the loot window is banked when PLAYER_MONEY fires
 do
   money = 100
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
-  ok(config:GetTotalGold() == 0, "no gold counted while the loot window is open")
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  ok(config:GetTotalGold() == 0, "no gold counted before PLAYER_MONEY fires")
 
   money = 355
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
   ok(config:GetTotalGold() == 255, "gold looted during the window is added")
 
+  smFrame:emit("LOOT_CLOSED")
   ok(sm.state == sm.STATE.OPENER, "loot window closed into the opener state")
 end
 
--- an empty loot window adds nothing
+-- an empty loot window adds nothing, even with a late money change
 do
   reset()
   money = 100
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
-  frame:emit("LOOT_CLOSED")
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+
+  smFrame:emit("LOOT_CLOSED")
   ok(config:GetTotalGold() == 255, "a window with no money adds nothing")
+
+  -- the snapshot expires a second after the window opens, so a PLAYER_MONEY
+  -- arriving after the window is not counted
+  expireSnapshot()
+  money = 300
+  trackerFrame:emit("PLAYER_MONEY")
+  ok(config:GetTotalGold() == 255, "gold that moves after the window is not counted")
 end
 
 -- a negative delta is never subtracted (clamped at zero)
 do
   reset()
   money = 100
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 50
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
   ok(config:GetTotalGold() == 255, "a negative delta is ignored")
 end
 
--- aborting the loot window (target changed mid-loot) finalizes looted gold
+-- aborting the loot window (target changed mid-loot) keeps gold already looted
 do
   reset()
   money = 200
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 220
-  frame:emit("PLAYER_TARGET_CHANGED")
-  ok(config:GetTotalGold() == 275, "changing targets finalizes gold already looted")
+  trackerFrame:emit("PLAYER_MONEY")
+  smFrame:emit("PLAYER_TARGET_CHANGED")
+  ok(config:GetTotalGold() == 275, "changing targets keeps gold already looted")
 end
 
 -- repeated pickpockets accumulate
 do
   reset()
   money = 0
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 40
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
+  smFrame:emit("LOOT_CLOSED")
 
   reset()
   money = 40
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 70
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
+  smFrame:emit("LOOT_CLOSED")
 
   ok(config:GetTotalGold() == 345, "repeated pickpockets accumulate")
 end
@@ -149,17 +179,18 @@ do
   config:SetTrackingEnabled(false)
   reset()
   money = 0
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 50
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
   ok(config:GetTotalGold() == 345, "no gold is counted while tracking is disabled")
 
   config:SetTrackingEnabled(true)
   reset()
   money = 50
-  frame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
+  smFrame:emit("UNIT_SPELLCAST_SUCCEEDED", "player", "GUID", 921)
   money = 90
-  frame:emit("LOOT_CLOSED")
+  trackerFrame:emit("PLAYER_MONEY")
+  smFrame:emit("LOOT_CLOSED")
   ok(config:GetTotalGold() == 385, "tracking resumes after re-enabling")
 end
 

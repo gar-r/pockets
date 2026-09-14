@@ -7,6 +7,7 @@
         "GetMoney",
         "GetMoneyString",
         "CreateSettingsListSectionHeaderInitializer",
-        "EventRegistry"
+        "EventRegistry",
+        "C_Timer"
     ]
 }
