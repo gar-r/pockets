@@ -11,6 +11,7 @@ test:
 	lua5.1 tests/test_config.lua
 	lua5.1 tests/test_tracker.lua
 	lua5.1 tests/test_gold.lua
+	lua5.1 tests/test_macro.lua
 
 uninstall:
 	rm -rf "$(ADDON_DIR)/$(ADDON_NAME)"

@@ -9,6 +9,13 @@ function settings:Init()
     self:addShowGoldFrameCheckBox()
     self:addResetOnLoginCheckBox()
     self:addResetGoldButton()
+    self:addMacroHelper()
+end
+
+function settings:addMacroHelper()
+    if pockets.macro then
+        pockets.macro:addControls(self.category)
+    end
 end
 
 function settings:addResetGoldButton()

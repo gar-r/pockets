@@ -11,6 +11,12 @@
         "CreateSettingsListSectionHeaderInitializer",
         "StaticPopup_ShowCustomGenericConfirmation",
         "EventRegistry",
-        "C_Timer"
+        "C_Timer",
+        "GetNumMacros",
+        "GetMacroInfo",
+        "CreateMacro",
+        "EditMacro",
+        "C_Spell",
+        "print"
     ]
 }

@@ -15,4 +15,12 @@ pockets.strings = {
 	settingsResetTotalGoldConfirm = "Reset the tracked gold total to 0?",
 	settingsResetTotalGoldAccept = "Reset",
 	settingsResetTotalGoldCancel = "Cancel",
+	settingsMacroHelper = "Macro helper",
+	settingsMacroHelperTooltip = "Select an opener ability to create a macro for it.",
+	settingsMacroCreateButton = "Create macro",
+	settingsMacroCreateTooltip = "Create or update a macro named 'Pockets' that clicks the selected opener's secure button.",
+	settingsMacroCreateSuccess = "Macro 'Pockets' created.",
+	settingsMacroCreateUpdated = "Macro 'Pockets' updated.",
+	settingsMacroCreateErrorFull = "Macro list is full.",
+	settingsMacroCreateErrorInCombat = "Cannot create macros in combat.",
 }
