@@ -8,7 +8,8 @@
 --   * update the label whenever the total changes,
 --   * drag with the left mouse button (not while in combat),
 --   * persist its dragged position into PocketsDB and restore it on load,
---   * be transparent (no background texture).
+--   * be transparent (no background texture),
+--   * only be visible when gold tracking and the display widget are enabled.
 
 local here = arg and arg[0]:match("^(.*)[/\\]") or "."
 local configPath = here .. "/../core/config.lua"
@@ -111,6 +112,12 @@ local function makeFrame(n, parent)
     end,
     StopMovingOrSizing = function(self)
       self.isMoving = false
+    end,
+    Show = function(self)
+      self.shown = true
+    end,
+    Hide = function(self)
+      self.shown = false
     end,
   }
   return frame
@@ -245,6 +252,39 @@ do
   ok(gold.frame.size ~= nil, "refresh always sizes the frame")
   ok(gold.frame.size[1] == 140 and gold.frame.size[2] == 20,
      "unmeasurable text falls back to the default size (140x20)")
+end
+
+-- the frame is visible by default (tracking and display both enabled)
+do
+  gold.frame.shown = nil
+  gold:Init()
+  ok(gold.frame.shown == true, "frame shows when tracking and display are enabled")
+end
+
+-- the frame hides when the Display UI widget setting is off
+do
+  config:SetShowGoldFrame(false)
+  gold.frame.shown = nil
+  gold:Init()
+  ok(gold.frame.shown == false, "frame hides when display is disabled")
+end
+
+-- the frame hides when tracking is disabled, even if display is still enabled
+do
+  config:SetShowGoldFrame(true)
+  config:SetTrackingEnabled(false)
+  gold.frame.shown = nil
+  gold:Init()
+  ok(gold.frame.shown == false, "frame hides when tracking is disabled")
+end
+
+-- the frame reappears when tracking is re-enabled and display is on
+do
+  config:SetShowGoldFrame(true)
+  config:SetTrackingEnabled(true)
+  gold.frame.shown = nil
+  gold:Init()
+  ok(gold.frame.shown == true, "frame shows again once tracking is re-enabled")
 end
 
 print("All gold tests passed")

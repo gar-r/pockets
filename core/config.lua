@@ -4,6 +4,7 @@ local config = {
 	defaults = {
 		totalGold = 0,
 		trackEnabled = true,
+		showGoldFrame = true,
 	}
 }
 
@@ -46,6 +47,14 @@ end
 
 function config:SetTrackingEnabled(value)
 	self.db.trackEnabled = value and true or false
+end
+
+function config:IsShowGoldFrameEnabled()
+	return self.db.showGoldFrame
+end
+
+function config:SetShowGoldFrame(value)
+	self.db.showGoldFrame = value and true or false
 end
 
 pockets.config = config

@@ -29,6 +29,7 @@ do
   ok(config.db == _G.PocketsDB, "config.db is the PocketsDB global")
   ok(config.db.totalGold == 0, "totalGold defaults to 0")
   ok(config.db.trackEnabled == true, "trackEnabled defaults to true")
+  ok(config.db.showGoldFrame == true, "showGoldFrame defaults to true")
 end
 
 -- AddTotalGold accumulates through config, not the raw table
@@ -59,13 +60,25 @@ do
   ok(config:GetTotalGold() == 205, "accumulation resumes after re-enabling")
 end
 
+-- showGoldFrame can be toggled independently and coerced to boolean
+do
+  ok(config:IsShowGoldFrameEnabled() == true, "showGoldFrame starts enabled")
+  config:SetShowGoldFrame(false)
+  ok(config:IsShowGoldFrameEnabled() == false, "showGoldFrame can be disabled")
+  config:SetShowGoldFrame(true)
+  ok(config:IsShowGoldFrameEnabled() == true, "showGoldFrame can be re-enabled")
+  config:SetShowGoldFrame(nil)
+  ok(config:IsShowGoldFrameEnabled() == false, "showGoldFrame coerces non-boolean to false")
+end
+
 -- Init preserves previously saved values instead of overwriting them
 do
-  _G.PocketsDB = { totalGold = 999, trackEnabled = false }
+  _G.PocketsDB = { totalGold = 999, trackEnabled = false, showGoldFrame = false }
   config:Init()
   ok(config.db == _G.PocketsDB, "re-Init re-binds to the existing global")
   ok(config.db.totalGold == 999, "an existing totalGold is preserved")
   ok(config.db.trackEnabled == false, "an existing trackEnabled is preserved")
+  ok(config.db.showGoldFrame == false, "an existing showGoldFrame is preserved")
   _G.PocketsDB = nil
 end
 

@@ -56,6 +56,7 @@ function gold:Init()
     self:refresh(totalGold)
   end)
   self:refresh()
+  self:updateVisibility()
 end
 
 function gold:createBackdrop()
@@ -103,6 +104,14 @@ function gold:restorePosition()
     f:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
   else
     f:SetPoint(DEFAULT_POINT, UIParent, DEFAULT_RELATIVE_POINT, DEFAULT_X, DEFAULT_Y)
+  end
+end
+
+function gold:updateVisibility()
+  if config:IsTrackingEnabled() and config:IsShowGoldFrameEnabled() then
+    self.frame:Show()
+  else
+    self.frame:Hide()
   end
 end
 
