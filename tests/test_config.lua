@@ -30,6 +30,7 @@ do
   ok(config.db.totalGold == 0, "totalGold defaults to 0")
   ok(config.db.trackEnabled == true, "trackEnabled defaults to true")
   ok(config.db.showGoldFrame == true, "showGoldFrame defaults to true")
+  ok(config.db.resetOnLogin == false, "resetOnLogin defaults to false")
 end
 
 -- AddTotalGold accumulates through config, not the raw table
@@ -82,6 +83,17 @@ do
   ok(config:GetTotalGold() == 0, "ResetTotalGold zeroes the tally")
   ok(notified == 0, "ResetTotalGold notifies listeners with the new total")
   ok(_G.PocketsDB.totalGold == 0, "ResetTotalGold writes into PocketsDB")
+end
+
+-- resetOnLogin can be toggled independently and coerced to boolean
+do
+  ok(config:IsResetOnLoginEnabled() == false, "resetOnLogin starts disabled")
+  config:SetResetOnLoginEnabled(true)
+  ok(config:IsResetOnLoginEnabled() == true, "resetOnLogin can be enabled")
+  config:SetResetOnLoginEnabled(false)
+  ok(config:IsResetOnLoginEnabled() == false, "resetOnLogin can be disabled")
+  config:SetResetOnLoginEnabled(nil)
+  ok(config:IsResetOnLoginEnabled() == false, "resetOnLogin coerces non-boolean to false")
 end
 
 -- Init preserves previously saved values instead of overwriting them

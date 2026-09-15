@@ -9,9 +9,12 @@ local tracker = {
 
 function tracker:Init()
   self.frame:RegisterEvent("PLAYER_MONEY")
+  self.frame:RegisterEvent("PLAYER_LOGIN")
   self.frame:SetScript("OnEvent", function (_, event)
     if event == "PLAYER_MONEY" then
       self:onPlayerMoney()
+    elseif event == "PLAYER_LOGIN" then
+      self:onPlayerLogin()
     end
   end)
   sm:RegisterStateListener(function(oldState, newState)
@@ -28,6 +31,12 @@ function tracker:onStateChanged(_, newState)
     C_Timer.After(1, function ()
       self.snapshot = nil
     end)
+  end
+end
+
+function tracker:onPlayerLogin()
+  if config:IsResetOnLoginEnabled() then
+    config:ResetTotalGold()
   end
 end
 

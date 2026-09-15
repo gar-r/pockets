@@ -7,6 +7,7 @@ function settings:Init()
     Settings.RegisterAddOnCategory(self.category)
     self:addTrackCheckBox()
     self:addShowGoldFrameCheckBox()
+    self:addResetOnLoginCheckBox()
     self:addResetGoldButton()
 end
 
@@ -50,6 +51,16 @@ function settings:addShowGoldFrameCheckBox()
         end)
 end
 
+function settings:addResetOnLoginCheckBox()
+    local setting = self:registerResetOnLoginSetting()
+    self.resetOnLoginInitializer = Settings.CreateCheckbox(self.category, setting,
+        pockets.strings.settingsResetOnLoginTooltip)
+    self.resetOnLoginInitializer:SetParentInitializer(self.trackInitializer,
+        function()
+            return pockets.config:IsTrackingEnabled()
+        end)
+end
+
 function settings:registerTrackSetting()
     return Settings.RegisterProxySetting(
         self.category,
@@ -87,6 +98,25 @@ function settings:registerShowGoldFrameSetting()
             if pockets.gold then
                 pockets.gold:updateVisibility()
             end
+        end
+    )
+end
+
+function settings:registerResetOnLoginSetting()
+    return Settings.RegisterProxySetting(
+        self.category,
+        "resetOnLogin",
+        Settings.VarType.Boolean,
+        pockets.strings.settingsResetOnLogin,
+        true,
+        function()
+            return pockets.config:IsResetOnLoginEnabled()
+        end,
+        function(value)
+            if not pockets.config:IsTrackingEnabled() then
+                return
+            end
+            pockets.config:SetResetOnLoginEnabled(value)
         end
     )
 end

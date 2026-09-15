@@ -5,6 +5,7 @@ local config = {
 		totalGold = 0,
 		trackEnabled = true,
 		showGoldFrame = true,
+		resetOnLogin = false,
 	}
 }
 
@@ -60,6 +61,14 @@ end
 
 function config:SetShowGoldFrame(value)
 	self.db.showGoldFrame = value and true or false
+end
+
+function config:IsResetOnLoginEnabled()
+	return self.db.resetOnLogin
+end
+
+function config:SetResetOnLoginEnabled(value)
+	self.db.resetOnLogin = value and true or false
 end
 
 pockets.config = config

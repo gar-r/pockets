@@ -194,4 +194,20 @@ do
   ok(config:GetTotalGold() == 385, "tracking resumes after re-enabling")
 end
 
+-- reset-on-login: the tally is zeroed on login only when the option is on
+do
+  ok(trackerFrame.events["PLAYER_LOGIN"] ~= nil, "the tracker watches PLAYER_LOGIN")
+
+  config:SetResetOnLoginEnabled(false)
+  config:AddTotalGold(500)
+  trackerFrame:emit("PLAYER_LOGIN")
+  ok(config:GetTotalGold() == 885, "login does not reset the tally when the option is off")
+
+  config:SetResetOnLoginEnabled(true)
+  trackerFrame:emit("PLAYER_LOGIN")
+  ok(config:GetTotalGold() == 0, "login resets the tally when the option is on")
+
+  config:SetResetOnLoginEnabled(false)
+end
+
 print("All tracker tests passed")
