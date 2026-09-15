@@ -9,6 +9,7 @@
         "UIParent",
         "GameFontNormalSmall",
         "CreateSettingsListSectionHeaderInitializer",
+        "StaticPopup_ShowCustomGenericConfirmation",
         "EventRegistry",
         "C_Timer"
     ]

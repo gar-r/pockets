@@ -31,6 +31,11 @@ function config:AddTotalGold(amount)
 	end
 end
 
+function config:ResetTotalGold()
+	self.db.totalGold = 0
+	self:notifyTotalGoldChanged()
+end
+
 function config:RegisterTotalGoldListener(fn)
 	table.insert(self.totalGoldListeners, fn)
 end

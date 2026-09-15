@@ -7,6 +7,31 @@ function settings:Init()
     Settings.RegisterAddOnCategory(self.category)
     self:addTrackCheckBox()
     self:addShowGoldFrameCheckBox()
+    self:addResetGoldButton()
+end
+
+function settings:addResetGoldButton()
+    local initializer = Settings.CreateElementInitializer("SettingButtonControlTemplate", {
+        name = pockets.strings.settingsResetTotalGold,
+        buttonText = pockets.strings.settingsResetTotalGold,
+        buttonClick = function()
+            self:confirmResetTotalGold()
+        end,
+        tooltip = pockets.strings.settingsResetTotalGoldTooltip,
+    })
+    Settings.RegisterInitializer(self.category, initializer)
+end
+
+function settings:confirmResetTotalGold()
+    StaticPopup_ShowCustomGenericConfirmation({
+        text = pockets.strings.settingsResetTotalGoldConfirm,
+        acceptText = pockets.strings.settingsResetTotalGoldAccept,
+        cancelText = pockets.strings.settingsResetTotalGoldCancel,
+        showAlert = true,
+        callback = function()
+            pockets.config:ResetTotalGold()
+        end,
+    })
 end
 
 function settings:addTrackCheckBox()

@@ -71,6 +71,19 @@ do
   ok(config:IsShowGoldFrameEnabled() == false, "showGoldFrame coerces non-boolean to false")
 end
 
+-- ResetTotalGold zeroes the tally and notifies listeners
+do
+  config:AddTotalGold(500)
+  local notified
+  config:RegisterTotalGoldListener(function(total)
+    notified = total
+  end)
+  config:ResetTotalGold()
+  ok(config:GetTotalGold() == 0, "ResetTotalGold zeroes the tally")
+  ok(notified == 0, "ResetTotalGold notifies listeners with the new total")
+  ok(_G.PocketsDB.totalGold == 0, "ResetTotalGold writes into PocketsDB")
+end
+
 -- Init preserves previously saved values instead of overwriting them
 do
   _G.PocketsDB = { totalGold = 999, trackEnabled = false, showGoldFrame = false }
