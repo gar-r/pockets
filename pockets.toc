@@ -5,6 +5,7 @@
 ## Author: garric
 ## SavedVariables: PocketsDB
 ## AddonCompartmentFunc: Pockets_OnAddonCompartmentClick
+## IconTexture: Interface\AddOns\pockets\pockets-icon.png
 
 strings.lua
 core/config.lua
